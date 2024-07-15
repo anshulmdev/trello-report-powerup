@@ -48,6 +48,36 @@ export const getLatestCredits = async (token) => {
     }
 };
 
+export const createUser = async (userEmail, userName) => {
+    try {
+        const response = await fetch(`${API_URL}/user/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: userEmail,
+                name: userName,
+            }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return { token: data.token, credits: data.credits };
+        } else {
+            const errorData = await response.json();
+            if (errorData.error === 'Internal Server Error') {
+                return { shouldOpenDialog: true };
+            } else {
+                throw new Error('Error creating user');
+            }
+        }
+    } catch (error) {
+        console.error('Error creating user:', error);
+        throw error;
+    }
+};
+
 export const generateReport = async (token, type, data, question) => {
     const url = type === 'text' ? `${API_URL}/module/5001` : `${API_URL}/module/1025`;
     const formattingPrompt = `
