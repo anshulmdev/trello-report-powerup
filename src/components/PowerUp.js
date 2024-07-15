@@ -143,7 +143,7 @@ const PowerUp = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5 }}
-                    className="bg-white shadow-lg rounded-lg overflow-hidden"
+                    className="bg-white rounded-lg overflow-hidden"
                 >
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-6">
@@ -178,7 +178,7 @@ const PowerUp = () => {
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ duration: 0.5 }}
-                                className="border border-gray-300 rounded-lg p-4 shadow-lg bg-white"
+                                className="border border-gray-300 rounded-lg p-4 bg-white"
                             >
                                 <div className="flex justify-end space-x-2 mb-4">
                                     <button onClick={handlePrint} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
@@ -192,7 +192,7 @@ const PowerUp = () => {
                                 </div>
                                 <div 
                                     className="overflow-auto"
-                                    style={{maxHeight: '60vh'}}
+                                    style={{maxHeight: '400px'}}
                                     dangerouslySetInnerHTML={{ __html: report }}
                                 />
                             </motion.div>

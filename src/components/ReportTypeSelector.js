@@ -14,7 +14,7 @@ const ReportTypeSelector = ({ onSelect, credits }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white shadow-lg rounded-lg overflow-hidden"
+            className="bg-white rounded-lg overflow-hidden"
         >
             <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
@@ -31,7 +31,7 @@ const ReportTypeSelector = ({ onSelect, credits }) => {
                     <textarea
                         id="question"
                         rows="4"
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-2"
+                        className="focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-2"
                         placeholder="Enter your question here"
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}

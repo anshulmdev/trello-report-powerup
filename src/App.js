@@ -16,7 +16,7 @@ function App() {
               title: 'AI Powered Reports - by API Labz',
               url: './index.html',
               height: 600,
-              args: { rand: Math.random() }, // To force iframe reload
+              width: 800,  // Increased width for better visibility
             });
           }
         }];
