@@ -170,9 +170,8 @@ const PowerUp = () => {
     const toggleHistory = () => {
         setShowHistory(!showHistory);
     };
-
     if (loading) {
-        return <ProgressDialog characters={characters} />;
+        return <InitialLoading />;
     }
 
     return (
