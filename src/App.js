@@ -1,23 +1,31 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from 'react';
+import PowerUp from './components/PowerUp';
 
 function App() {
+  useEffect(() => {
+    window.TrelloPowerUp.initialize({
+      'board-buttons': function(t, options) {
+        return [{
+          icon: {
+            dark: 'https://img.icons8.com/ios-filled/50/000000/report-card.png',
+            light: 'https://img.icons8.com/ios/50/000000/report-card.png'
+          },
+          text: 'Generate Report',
+          callback: function(t) {
+            return t.popup({
+              title: 'Generate Report',
+              url: './index.html',
+              height: 300
+            });
+          }
+        }];
+      }
+    });
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <PowerUp />
     </div>
   );
 }
