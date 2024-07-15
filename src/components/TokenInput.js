@@ -10,16 +10,12 @@ const TokenInput = ({ onSubmit, error }) => {
         onSubmit(token);
     };
 
-    const handleCreateUser = () => {
-        window.open("https://apilabz.com/", "_blank");
-    };
-
     return (
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="p-8 max-w-md mx-auto bg-white shadow-lg rounded-lg"
+            className="bg-white p-8 rounded-lg shadow-md"
         >
             <h2 className="text-3xl font-bold mb-6">API Labz Authentication</h2>
             <form onSubmit={handleSubmit} className="mb-6">
@@ -50,26 +46,12 @@ const TokenInput = ({ onSubmit, error }) => {
                     Submit
                 </motion.button>
             </form>
-            <p className="text-center mb-4">Don't have a token?</p>
-            <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleCreateUser}
-                className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-            >
-                Create new user
-            </motion.button>
             {error && (
-                <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                    role="alert"
-                >
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                     <strong className="font-bold">Error: </strong>
                     <span className="block sm:inline">{error}</span>
                     <ExclamationCircleIcon className="h-5 w-5 inline ml-2" />
-                </motion.div>
+                </div>
             )}
         </motion.div>
     );

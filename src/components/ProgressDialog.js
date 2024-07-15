@@ -22,16 +22,11 @@ const ProgressDialog = ({ characters }) => {
     }, [totalSeconds]);
 
     return (
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-        >
-            <div className="bg-white p-8 rounded-lg shadow-xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
                 <h3 className="text-2xl font-bold mb-4">Generating Report</h3>
                 <p className="mb-4">Estimated time: {totalSeconds} seconds</p>
-                <div className="w-64 h-4 bg-gray-200 rounded-full overflow-hidden">
+                <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
                     <motion.div 
                         className="h-full bg-blue-500"
                         initial={{ width: 0 }}
@@ -43,7 +38,7 @@ const ProgressDialog = ({ characters }) => {
                     {progress < totalSeconds ? `${progress} seconds elapsed...` : 'Finalizing report...'}
                 </p>
             </div>
-        </motion.div>
+        </div>
     );
 };
 

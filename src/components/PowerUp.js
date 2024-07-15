@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon, ArrowTopRightOnSquareIcon, ClockIcon } from '@heroicons/react/24/solid';
+import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon, ArrowTopRightOnSquareIcon, ClockIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import ReportTypeSelector from './ReportTypeSelector';
 import TokenInput from './TokenInput';
 import ProgressDialog from './ProgressDialog';
 import HistoryTable from './HistoryTable';
-import { validateToken, generateReport, getLatestCredits, createUser } from '../services/apiLabzService';
+import { validateToken, generateReport, createUser } from '../services/apiLabzService';
 import { getCardData } from '../services/trelloService';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -86,6 +86,7 @@ const PowerUp = () => {
         }
         setLoading(false);
     };
+
     const handleReportTypeSelect = async (type, question) => {
         setLoading(true);
         setShowProgress(true);
@@ -95,12 +96,16 @@ const PowerUp = () => {
         setCharacters(JSON.stringify(cardData).length);
         try {
             const generatedReport = await generateReport(token, type, cardData, question);
-            const latestCredits = await getLatestCredits(token);
-            const creditsUsed = credits - latestCredits;
-            if (creditsUsed > 0) {
-                toast.info(`${creditsUsed} credits used`);
+            const latestTokenInfo = await validateToken(token);
+            
+            if (latestTokenInfo.isValid) {
+                const creditsUsed = credits - latestTokenInfo.credits;
+                if (creditsUsed > 0) {
+                    toast.info(`${creditsUsed} credits used`);
+                }
+                setCredits(latestTokenInfo.credits);
+                localStorage.setItem('apiLabzToken', token);
             }
-            setCredits(latestCredits);
             
             if (type === 'text') {
                 setReport(generatedReport);
@@ -121,7 +126,13 @@ const PowerUp = () => {
             setHistory(updatedHistory);
             localStorage.setItem('reportHistory', JSON.stringify(updatedHistory));
         } catch (error) {
-            setError('Error generating report. Please try again.');
+            if (error.message === 'Request timeout from server end') {
+                setError('Request timeout from server end. Please try again later.');
+            } else if (error.message.includes('Insufficient credits')) {
+                setError('Insufficient credits. Please add more credits to continue.');
+            } else {
+                setError('Error generating report. Please try again.');
+            }
         }
         setLoading(false);
         setShowProgress(false);
@@ -162,13 +173,44 @@ const PowerUp = () => {
         setShowHistory(!showHistory);
     };
 
-    if (loading) {
-        return (
-            <div className="flex flex-col justify-center items-center h-screen">
-                <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-                <p className="mt-4 text-lg font-semibold text-gray-700">Loading... Please wait</p>
+    const renderErrorDialog = () => (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md">
+                <div className="flex items-center mb-4">
+                    <ExclamationCircleIcon className="h-6 w-6 text-red-500 mr-2" />
+                    <h3 className="text-xl font-bold text-red-700">Error</h3>
+                </div>
+                <p className="mb-4">{error}</p>
+                {error.includes('Insufficient credits') && (
+                    <a 
+                        href="https://apilabz.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block mr-2"
+                    >
+                        Add Credits
+                    </a>
+                )}
+                {error.includes('timeout') && (
+                    <a 
+                        href="mailto:info@apilabz.com"
+                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-block mr-2"
+                    >
+                        Email Us
+                    </a>
+                )}
+                <button 
+                    onClick={() => setError('')}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-block"
+                >
+                    Close
+                </button>
             </div>
-        );
+        </div>
+    );
+
+    if (loading) {
+        return <ProgressDialog characters={characters} />;
     }
 
     return (
@@ -179,13 +221,15 @@ const PowerUp = () => {
             ) : !reportType ? (
                 <>
                     <ReportTypeSelector onSelect={handleReportTypeSelect} credits={credits} />
-                    <button 
-                        onClick={toggleHistory}
-                        className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center"
-                    >
-                        <ClockIcon className="h-5 w-5 mr-2" />
-                        {showHistory ? 'Hide History' : 'Show History'}
-                    </button>
+                    {history.length > 0 && (
+                        <button 
+                            onClick={toggleHistory}
+                            className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded flex items-center w-full justify-center"
+                        >
+                            <ClockIcon className="h-5 w-5 mr-2" />
+                            {showHistory ? 'Hide History' : 'Show History'}
+                        </button>
+                    )}
                     <AnimatePresence>
                         {showHistory && (
                             <motion.div
@@ -245,45 +289,48 @@ const PowerUp = () => {
                                 </a>
                             </div>
                         )}
-                        <motion.div 
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                            className="border border-gray-300 rounded-lg p-4 bg-white"
-                        >
-                            <div className="flex justify-end space-x-2 mb-4">
-                                <button onClick={handlePrint} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
-                                    <PrinterIcon className="h-5 w-5 mr-2" />
-                                    Print
-                                </button>
-                                <button onClick={handleSave} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
-                                    <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
-                                    Save
-                                </button>
-                            </div>
-                            <div 
-                                className="overflow-auto"
-                                style={{maxHeight: 'calc(100vh - 300px)'}}
+                        {(reportUrl || report) && !error && (
+                            <motion.div 
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                                className="border border-gray-300 rounded-lg p-4 bg-white"
                             >
-                                {reportType === 'text' ? (
-                                    <div dangerouslySetInnerHTML={{ __html: report }} />
-                                ) : (
-                                    <iframe
-                                        src={reportUrl}
-                                        title="Graphical Report"
-                                        width="100%"
-                                        height="500px"
-                                        className="border-none"
-                                    />
-                                )}
-                            </div>
-                        </motion.div>
+                                <div className="flex justify-end space-x-2 mb-4">
+                                    <button onClick={handlePrint} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                                        <PrinterIcon className="h-5 w-5 mr-2" />
+                                        Print
+                                    </button>
+                                    <button onClick={handleSave} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                                        <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+                                        Save
+                                    </button>
+                                </div>
+                                <div 
+                                    className="overflow-auto"
+                                    style={{maxHeight: 'calc(100vh - 300px)'}}
+                                >
+                                    {reportType === 'text' ? (
+                                        <div dangerouslySetInnerHTML={{ __html: report }} />
+                                    ) : (
+                                        <iframe
+                                            src={reportUrl}
+                                            title="Graphical Report"
+                                            width="100%"
+                                            height="500px"
+                                            className="border-none"
+                                        />
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
                     </div>
                 </motion.div>
             )}
             {showProgress && (
                 <ProgressDialog characters={characters} />
             )}
+            {error && renderErrorDialog()}
         </div>
     );
 };

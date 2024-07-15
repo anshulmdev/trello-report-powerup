@@ -27,27 +27,6 @@ export const validateToken = async (token) => {
     }
 };
 
-export const getLatestCredits = async (token) => {
-    try {
-        const response = await fetch(`${API_URL}/user/credits`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            return data.credits;
-        } else {
-            throw new Error('Error fetching latest credits');
-        }
-    } catch (error) {
-        console.error('Error fetching latest credits:', error);
-        throw error;
-    }
-};
-
 export const createUser = async (userEmail, userName) => {
     try {
         const response = await fetch(`${API_URL}/user/create`, {
@@ -94,14 +73,20 @@ export const generateReport = async (token, type, data, question) => {
         : { rawData: JSON.stringify(data), instruction: `${question} <FinalOutput>Generate a small HTML report with only two charts in same vertical line. And below it nice one table of statistics. Apply proper: shadow, border, margin, colors etc</FinalOutput>` };
 
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 seconds timeout
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(postData)
+            body: JSON.stringify(postData),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
             const errorData = await response.json();
@@ -111,6 +96,9 @@ export const generateReport = async (token, type, data, question) => {
         const result = await response.json();
         return result.response;
     } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout from server end');
+        }
         console.error('Error generating report:', error);
         throw error;
     }
