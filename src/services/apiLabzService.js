@@ -27,49 +27,36 @@ export const validateToken = async (token) => {
     }
 };
 
-export const createUser = async (userEmail, userName) => {
-    try {
-        const response = await fetch(`${API_URL}/user/create`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: userEmail,
-                name: userName,
-            }),
-        });
+export const generateReport = async (token, type, data, question) => {
+    const url = type === 'text' ? `${API_URL}/module/5001` : `${API_URL}/module/1025`;
+    const formattingPrompt = `
+    - Think Very carefully, Take as long as you need.
+    - Work as a Professional Data Analyst which can summarize data in well formatted html
+    - Final output should completely in html format with Headings, Paragraphs, Bullet Points and Table
+    - Final output should be in html only. Do not print extra lines like "Here is a simple summary in HTML format with headings, paragraphs, bullet points, and a table:"
+    - Do not print records table. print only summary and analysis
+    `;
+    
+    const postData = type === 'text' 
+        ? { prompt: `${formattingPrompt} ${question}` }
+        : { rawData: data, instruction: question };
 
-        if (response.ok) {
-            const data = await response.json();
-            return { token: data.token, credits: data.credits };
-        } else {
-            const errorData = await response.json();
-            if (errorData.error === 'Internal Server Error') {
-                return { shouldOpenDialog: true };
-            } else {
-                throw new Error('Error creating user');
-            }
-        }
-    } catch (error) {
-        console.error('Error creating user:', error);
-        return { errorMessage: 'Error creating user. Please try again.' };
-    }
-};
-
-export const generateReport = async (token, type, data) => {
-    const endpoint = type === 'text' ? '/module/5001' : '/module/1025';
     try {
-        const response = await fetch(`${API_URL}${endpoint}`, {
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ data })
+            body: JSON.stringify(postData)
         });
+        
+        if (!response.ok) {
+            throw new Error(`Error from API: ${await response.text()}`);
+        }
+        
         const result = await response.json();
-        return result.fileURL;
+        return type === 'text' ? result.response[0].text : result.response.fileURL;
     } catch (error) {
         console.error('Error generating report:', error);
         throw error;
