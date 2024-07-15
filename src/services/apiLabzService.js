@@ -60,17 +60,15 @@ export const createUser = async (userEmail, userName) => {
 export const generateReport = async (token, type, data, question) => {
     const url = type === 'text' ? `${API_URL}/module/5001` : `${API_URL}/module/1025`;
     const formattingPrompt = `
+    <StrictInstructions>Provide Statistics on attatched Data Only, Do not hallucinate or create false statistics. Statistics should be strictly on attached data only.</StrictInstructions>
     - Think Very carefully, Take as long as you need.
     - Work as a Professional Data Analyst which can summarize data in well formatted html
-    - Final output should completely in html format with Headings, Paragraphs, Bullet Points and Table
-    - Final output should be in html only. Do not print extra lines like "Here is a simple summary in HTML format with headings, paragraphs, bullet points, and a table:"
-    - Do not print records table. print only summary and analysis
     - Work like a Project Manager and Scrum Master, You are getting Task data with titles, description, dates etc - Write a proper summary and evaluation
     `;
     
     const postData = type === 'text' 
         ? { prompt: `${formattingPrompt} ${question}` }
-        : { rawData: JSON.stringify(data), instruction: `${question} <FinalOutput>Generate a small HTML report with only two charts in same vertical line. And below it nice one table of statistics. Apply proper: shadow, border, margin, colors etc</FinalOutput>` };
+        : { rawData: JSON.stringify(data), instruction: `${question} <StrictInstructions>Provide Statistics on attatched Data Only, Do not hallucinate or create false statistics. Statistics should be strictly on attached data only.</StrictInstructions><FinalOutput>Generate a small HTML report with only two charts in same vertical line. And below it nice one table of statistics. Apply proper: shadow, border, margin, colors etc</FinalOutput>` };
 
     try {
         const controller = new AbortController();
