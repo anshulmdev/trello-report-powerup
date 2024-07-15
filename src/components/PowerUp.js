@@ -5,7 +5,6 @@ import TokenInput from './TokenInput';
 import ProgressDialog from './ProgressDialog';
 import ErrorDialog from './ErrorDialog';
 import MainContent from './MainContent';
-import InitialLoading from './InitialLoading';
 import { validateToken, generateReport, createUser } from '../services/apiLabzService';
 import { getCardData } from '../services/trelloService';
 
@@ -171,7 +170,7 @@ const PowerUp = () => {
         setShowHistory(!showHistory);
     };
     if (loading) {
-        return <InitialLoading />;
+        return <ProgressDialog />;
     }
 
     return (
