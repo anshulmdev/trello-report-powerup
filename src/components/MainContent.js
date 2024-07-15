@@ -1,50 +1,21 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeftIcon, CreditCardIcon, ClockIcon } from '@heroicons/react/24/solid';
+import { motion } from 'framer-motion';
+import { ChevronLeftIcon, CreditCardIcon, ArrowDownTrayIcon } from '@heroicons/react/24/solid';
 import ReportTypeSelector from './ReportTypeSelector';
-import HistoryTable from './HistoryTable';
-import ReportDisplay from './ReportDisplay';
 
 const MainContent = ({ 
     reportType, 
     credits, 
     onReportTypeSelect, 
-    history, 
-    showHistory, 
-    toggleHistory, 
-    report, 
-    reportUrl, 
+    report,
+    reportUrl,
     handleBack, 
-    handlePrint, 
-    handleSave 
+    handleDownload
 }) => {
     return (
         <>
             {!reportType ? (
-                <>
-                    <ReportTypeSelector onSelect={onReportTypeSelect} credits={credits} />
-                    {history.length > 0 && (
-                        <button 
-                            onClick={toggleHistory}
-                            className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded flex items-center justify-center w-full"
-                        >
-                            <ClockIcon className="h-5 w-5 mr-2" />
-                            {showHistory ? 'Hide History' : 'Show History'}
-                        </button>
-                    )}
-                    <AnimatePresence>
-                        {showHistory && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <HistoryTable history={history} />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </>
+                <ReportTypeSelector onSelect={onReportTypeSelect} credits={credits} />
             ) : (
                 <motion.div 
                     initial={{ opacity: 0 }}
@@ -69,13 +40,15 @@ const MainContent = ({
                                 </button>
                             </div>
                         </div>
-                        <ReportDisplay 
-                            reportType={reportType}
-                            report={report}
-                            reportUrl={reportUrl}
-                            handlePrint={handlePrint}
-                            handleSave={handleSave}
-                        />
+                        <div className="mt-6">
+                            <button
+                                onClick={handleDownload}
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center w-full"
+                            >
+                                <ArrowDownTrayIcon className="h-6 w-6 mr-2" />
+                                Download Report
+                            </button>
+                        </div>
                     </div>
                 </motion.div>
             )}

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const ProgressDialog = ({ characters }) => {
     const [progress, setProgress] = useState(0);
-    const totalSeconds = Math.ceil(characters / 100);
+    const totalSeconds = Math.max(Math.ceil(characters / 100), 1); // Ensure at least 1 second
 
     useEffect(() => {
         const timer = setInterval(() => {

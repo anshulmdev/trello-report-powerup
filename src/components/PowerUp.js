@@ -5,6 +5,7 @@ import TokenInput from './TokenInput';
 import ProgressDialog from './ProgressDialog';
 import ErrorDialog from './ErrorDialog';
 import MainContent from './MainContent';
+import InitialLoading from './InitialLoading';
 import { validateToken, generateReport, createUser } from '../services/apiLabzService';
 import { getCardData } from '../services/trelloService';
 
@@ -19,8 +20,6 @@ const PowerUp = () => {
     const [loading, setLoading] = useState(true);
     const [showProgress, setShowProgress] = useState(false);
     const [characters, setCharacters] = useState(0);
-    const [showHistory, setShowHistory] = useState(false);
-    const [history, setHistory] = useState([]);
 
     useEffect(() => {
         const initializeApp = async () => {
@@ -31,8 +30,6 @@ const PowerUp = () => {
             } else {
                 await createTrellUser();
             }
-            const storedHistory = JSON.parse(localStorage.getItem('reportHistory') || '[]');
-            setHistory(storedHistory);
             setLoading(false);
         };
 
@@ -41,7 +38,6 @@ const PowerUp = () => {
 
     const createTrellUser = async () => {
         try {
-            // We'll get the Trello data when needed, not here
             const result = await createUser('example@email.com', 'Example User');
             if (result.token) {
                 setToken(result.token);
@@ -109,19 +105,8 @@ const PowerUp = () => {
                 setReportUrl('');
             } else {
                 setReportUrl(generatedReport.fileURL);
-                setReport(generatedReport.html);
+                setReport('');
             }
-            
-            // Save to history
-            const newHistoryItem = {
-                date: new Date().toISOString(),
-                type,
-                question,
-                reportUrl: type === 'text' ? '' : generatedReport.fileURL
-            };
-            const updatedHistory = [newHistoryItem, ...history];
-            setHistory(updatedHistory);
-            localStorage.setItem('reportHistory', JSON.stringify(updatedHistory));
         } catch (error) {
             if (error.message === 'Request timeout from server end') {
                 setError('Request timeout from server end. Please try again later.');
@@ -142,35 +127,24 @@ const PowerUp = () => {
         setError('');
     };
 
-    const handlePrint = () => {
-        if (reportUrl) {
+    const handleDownload = () => {
+        if (reportType === 'text') {
+            const blob = new Blob([report], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'report.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } else if (reportType === 'graphic') {
             window.open(reportUrl, '_blank');
-        } else if (report) {
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(report);
-            printWindow.document.close();
-            printWindow.print();
         }
     };
 
-    const handleSave = () => {
-        const content = reportUrl || report;
-        const blob = new Blob([content], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'report.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
-
-    const toggleHistory = () => {
-        setShowHistory(!showHistory);
-    };
-    if (loading) {
-        return <ProgressDialog />;
+    if (loading && !showProgress) {
+        return <InitialLoading />;
     }
 
     return (
@@ -183,14 +157,10 @@ const PowerUp = () => {
                     reportType={reportType}
                     credits={credits}
                     onReportTypeSelect={handleReportTypeSelect}
-                    history={history}
-                    showHistory={showHistory}
-                    toggleHistory={toggleHistory}
                     report={report}
                     reportUrl={reportUrl}
                     handleBack={handleBack}
-                    handlePrint={handlePrint}
-                    handleSave={handleSave}
+                    handleDownload={handleDownload}
                 />
             )}
             {showProgress && (
