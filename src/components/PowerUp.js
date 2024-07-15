@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon, ArrowTopRightOnSquareIcon, ClockIcon } from '@heroicons/react/24/solid';
 import ReportTypeSelector from './ReportTypeSelector';
 import TokenInput from './TokenInput';
 import ProgressDialog from './ProgressDialog';
-import { validateToken, generateReport } from '../services/apiLabzService';
+import HistoryTable from './HistoryTable';
+import { validateToken, generateReport, getLatestCredits } from '../services/apiLabzService';
 import { getCardData } from '../services/trelloService';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const PowerUp = () => {
     const [token, setToken] = useState('');
@@ -18,6 +21,8 @@ const PowerUp = () => {
     const [loading, setLoading] = useState(true);
     const [showProgress, setShowProgress] = useState(false);
     const [characters, setCharacters] = useState(0);
+    const [showHistory, setShowHistory] = useState(false);
+    const [history, setHistory] = useState([]);
 
     useEffect(() => {
         const storedToken = localStorage.getItem('apiLabzToken');
@@ -27,6 +32,8 @@ const PowerUp = () => {
         } else {
             setLoading(false);
         }
+        const storedHistory = JSON.parse(localStorage.getItem('reportHistory') || '[]');
+        setHistory(storedHistory);
     }, []);
 
     const checkToken = async (tokenToCheck) => {
@@ -67,12 +74,31 @@ const PowerUp = () => {
         setCharacters(JSON.stringify(cardData).length);
         try {
             const generatedReport = await generateReport(token, type, cardData, question);
+            const latestCredits = await getLatestCredits(token);
+            const creditsUsed = credits - latestCredits;
+            if (creditsUsed > 0) {
+                toast.info(`${creditsUsed} credits used`);
+            }
+            setCredits(latestCredits);
+            
             if (type === 'text') {
                 setReport(generatedReport);
+                setReportUrl('');
             } else {
                 setReportUrl(generatedReport.fileURL);
-                setReport(generatedReport.html);
+                setReport('');
             }
+            
+            // Save to history
+            const newHistoryItem = {
+                date: new Date().toISOString(),
+                type,
+                question,
+                reportUrl: type === 'text' ? '' : generatedReport.fileURL
+            };
+            const updatedHistory = [newHistoryItem, ...history];
+            setHistory(updatedHistory);
+            localStorage.setItem('reportHistory', JSON.stringify(updatedHistory));
         } catch (error) {
             setError('Error generating report. Please try again.');
         }
@@ -88,31 +114,19 @@ const PowerUp = () => {
     };
 
     const handlePrint = () => {
-        const printContent = `
-            <html>
-                <head>
-                    <title>Print Report</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; }
-                        @media print {
-                            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-                        }
-                    </style>
-                </head>
-                <body>${report}</body>
-            </html>
-        `;
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-        iframe.contentDocument.write(printContent);
-        iframe.contentDocument.close();
-        iframe.contentWindow.print();
-        document.body.removeChild(iframe);
+        if (reportUrl) {
+            window.open(reportUrl, '_blank');
+        } else if (report) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(report);
+            printWindow.document.close();
+            printWindow.print();
+        }
     };
 
     const handleSave = () => {
-        const blob = new Blob([report], { type: 'text/html' });
+        const content = reportUrl || report;
+        const blob = new Blob([content], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -121,6 +135,10 @@ const PowerUp = () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    };
+
+    const toggleHistory = () => {
+        setShowHistory(!showHistory);
     };
 
     if (loading) {
@@ -134,10 +152,32 @@ const PowerUp = () => {
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-3xl">
+            <ToastContainer />
             {!isTokenValid ? (
                 <TokenInput onSubmit={handleTokenSubmit} error={error} />
             ) : !reportType ? (
-                <ReportTypeSelector onSelect={handleReportTypeSelect} credits={credits} />
+                <>
+                    <ReportTypeSelector onSelect={handleReportTypeSelect} credits={credits} />
+                    <button 
+                        onClick={toggleHistory}
+                        className="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center"
+                    >
+                        <ClockIcon className="h-5 w-5 mr-2" />
+                        {showHistory ? 'Hide History' : 'Show History'}
+                    </button>
+                    <AnimatePresence>
+                        {showHistory && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <HistoryTable history={history} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </>
             ) : (
                 <motion.div 
                     initial={{ opacity: 0 }}
@@ -163,54 +203,60 @@ const PowerUp = () => {
                             </div>
                         </div>
                         {error && <p className="text-red-500 mb-4">{error}</p>}
-                        {reportUrl && (
+                        {(reportUrl || report) && (
                             <div className="mb-6 flex justify-center">
                                 <a 
-                                    href={reportUrl} 
+                                    href={reportUrl || '#'}
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                                    onClick={(e) => {
+                                        if (!reportUrl) {
+                                            e.preventDefault();
+                                            const newWindow = window.open('', '_blank');
+                                            newWindow.document.write(report);
+                                            newWindow.document.close();
+                                        }
+                                    }}
                                 >
                                     <ArrowTopRightOnSquareIcon className="h-5 w-5 mr-2" />
                                     Open Report in New Tab
                                 </a>
                             </div>
                         )}
-                        {report && (
-                            <motion.div 
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.5 }}
-                                className="border border-gray-300 rounded-lg p-4 bg-white"
+                        <motion.div 
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                            className="border border-gray-300 rounded-lg p-4 bg-white"
+                        >
+                            <div className="flex justify-end space-x-2 mb-4">
+                                <button onClick={handlePrint} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                                    <PrinterIcon className="h-5 w-5 mr-2" />
+                                    Print
+                                </button>
+                                <button onClick={handleSave} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                                    <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+                                    Save
+                                </button>
+                            </div>
+                            <div 
+                                className="overflow-auto"
+                                style={{maxHeight: 'calc(100vh - 300px)'}}
                             >
-                                <div className="flex justify-end space-x-2 mb-4">
-                                    <button onClick={handlePrint} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
-                                        <PrinterIcon className="h-5 w-5 mr-2" />
-                                        Print
-                                    </button>
-                                    <button onClick={handleSave} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
-                                        <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
-                                        Save
-                                    </button>
-                                </div>
-                                <div 
-                                    className="overflow-auto"
-                                    style={{maxHeight: 'calc(100vh - 300px)'}}
-                                >
-                                    {reportType === 'text' ? (
-                                        <div dangerouslySetInnerHTML={{ __html: report }} />
-                                    ) : (
-                                        <iframe
-                                            srcDoc={report}
-                                            title="Graphical Report"
-                                            width="100%"
-                                            height="500px"
-                                            className="border-none"
-                                        />
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
+                                {reportType === 'text' ? (
+                                    <div dangerouslySetInnerHTML={{ __html: report }} />
+                                ) : (
+                                    <iframe
+                                        src={reportUrl}
+                                        title="Graphical Report"
+                                        width="100%"
+                                        height="500px"
+                                        className="border-none"
+                                    />
+                                )}
+                            </div>
+                        </motion.div>
                     </div>
                 </motion.div>
             )}

@@ -27,6 +27,27 @@ export const validateToken = async (token) => {
     }
 };
 
+export const getLatestCredits = async (token) => {
+    try {
+        const response = await fetch(`${API_URL}/user/credits`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data.credits;
+        } else {
+            throw new Error('Error fetching latest credits');
+        }
+    } catch (error) {
+        console.error('Error fetching latest credits:', error);
+        throw error;
+    }
+};
+
 export const generateReport = async (token, type, data, question) => {
     const url = type === 'text' ? `${API_URL}/module/5001` : `${API_URL}/module/1025`;
     const formattingPrompt = `
@@ -35,12 +56,12 @@ export const generateReport = async (token, type, data, question) => {
     - Final output should completely in html format with Headings, Paragraphs, Bullet Points and Table
     - Final output should be in html only. Do not print extra lines like "Here is a simple summary in HTML format with headings, paragraphs, bullet points, and a table:"
     - Do not print records table. print only summary and analysis
-    - Work like a Project Manager and Scrum Master, You are getting Task data with titles, description ,dates etc - Write a proper summary and evaluation
+    - Work like a Project Manager and Scrum Master, You are getting Task data with titles, description, dates etc - Write a proper summary and evaluation
     `;
     
     const postData = type === 'text' 
         ? { prompt: `${formattingPrompt} ${question}` }
-        : { rawData: JSON.stringify(data), instruction: `${question} <FinalOutput>Generate a small HTML report with only two charts in same vertical line. And below it nice one table of statiscs. Apply proper: shadow, border, margin, colors etc</FinalOutput>` };
+        : { rawData: JSON.stringify(data), instruction: `${question} <FinalOutput>Generate a small HTML report with only two charts in same vertical line. And below it nice one table of statistics. Apply proper: shadow, border, margin, colors etc</FinalOutput>` };
 
     try {
         const response = await fetch(url, {
@@ -58,14 +79,7 @@ export const generateReport = async (token, type, data, question) => {
         }
         
         const result = await response.json();
-        if (type === 'text') {
-            return result.response[0].text;
-        } else {
-            return {
-                fileURL: result.response.fileURL,
-                html: result.response.html // Assuming the API returns both fileURL and html for graphic reports
-            };
-        }
+        return result.response;
     } catch (error) {
         console.error('Error generating report:', error);
         throw error;

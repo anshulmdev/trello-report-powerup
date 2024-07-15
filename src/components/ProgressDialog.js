@@ -39,7 +39,9 @@ const ProgressDialog = ({ characters }) => {
                         transition={{ duration: 0.5 }}
                     />
                 </div>
-                <p className="mt-2 text-sm text-gray-600">Please wait...</p>
+                <p className="mt-2 text-sm text-gray-600">
+                    {progress < totalSeconds ? `${progress} seconds elapsed...` : 'Finalizing report...'}
+                </p>
             </div>
         </motion.div>
     );
