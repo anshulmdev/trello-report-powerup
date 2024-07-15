@@ -133,7 +133,7 @@ const PowerUp = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
             {!isTokenValid ? (
                 <TokenInput onSubmit={handleTokenSubmit} error={error} />
             ) : !reportType ? (
@@ -192,9 +192,20 @@ const PowerUp = () => {
                                 </div>
                                 <div 
                                     className="overflow-auto"
-                                    style={{maxHeight: '400px'}}
-                                    dangerouslySetInnerHTML={{ __html: report }}
-                                />
+                                    style={{maxHeight: 'calc(100vh - 300px)'}}
+                                >
+                                    {reportType === 'text' ? (
+                                        <div dangerouslySetInnerHTML={{ __html: report }} />
+                                    ) : (
+                                        <iframe
+                                            srcDoc={report}
+                                            title="Graphical Report"
+                                            width="100%"
+                                            height="600px"
+                                            className="border-none"
+                                        />
+                                    )}
+                                </div>
                             </motion.div>
                         )}
                     </div>

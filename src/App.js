@@ -12,11 +12,10 @@ function App() {
           },
           text: 'Generate AI Report',
           callback: function(t) {
-            return t.popup({
-              title: 'AI Powered Reports - by API Labz',
+            return t.modal({
               url: './index.html',
-              height: 600,
-              width: 800,  // Increased width for better visibility
+              fullscreen: true,
+              title: 'AI Powered Reports - by API Labz'
             });
           }
         }];
