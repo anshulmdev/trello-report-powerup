@@ -40,7 +40,7 @@ export const generateReport = async (token, type, data, question) => {
     
     const postData = type === 'text' 
         ? { prompt: `${formattingPrompt} ${question}` }
-        : { rawData: JSON.stringify(data), instruction: `${question} <FinalOutput>Generate a small HTML report with only two charts. And below it nice one table of statiscs with proper: shadow, border, margin, colors etc</FinalOutput>` };
+        : { rawData: JSON.stringify(data), instruction: `${question} <FinalOutput>Generate a small HTML report with only two charts in same vertical line. And below it nice one table of statiscs. Apply proper: shadow, border, margin, colors etc</FinalOutput>` };
 
     try {
         const response = await fetch(url, {

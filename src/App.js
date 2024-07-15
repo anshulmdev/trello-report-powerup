@@ -14,7 +14,8 @@ function App() {
           callback: function(t) {
             return t.modal({
               url: './index.html',
-              fullscreen: true,
+              height: 600,
+              width: 800,
               title: 'AI Powered Reports - by API Labz'
             });
           }

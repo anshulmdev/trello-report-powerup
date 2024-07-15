@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon } from '@heroicons/react/24/solid';
+import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon, ExternalLinkIcon } from '@heroicons/react/24/solid';
 import ReportTypeSelector from './ReportTypeSelector';
 import TokenInput from './TokenInput';
 import ProgressDialog from './ProgressDialog';
@@ -133,7 +133,7 @@ const PowerUp = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="container mx-auto px-4 py-8 max-w-3xl">
             {!isTokenValid ? (
                 <TokenInput onSubmit={handleTokenSubmit} error={error} />
             ) : !reportType ? (
@@ -146,11 +146,13 @@ const PowerUp = () => {
                     className="bg-white rounded-lg overflow-hidden"
                 >
                     <div className="p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-3xl font-bold">Generated Report</h2>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                            <h2 className="text-3xl font-bold mb-2 sm:mb-0">Generated Report</h2>
                             <div className="flex items-center space-x-4">
-                                <CreditCardIcon className="h-6 w-6 text-green-500" />
-                                <span className="text-lg font-semibold">Credits: {credits}</span>
+                                <div className="flex items-center">
+                                    <CreditCardIcon className="h-6 w-6 text-green-500 mr-2" />
+                                    <span className="text-lg font-semibold">Credits: {credits}</span>
+                                </div>
                                 <button 
                                     onClick={handleBack}
                                     className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center"
@@ -162,13 +164,14 @@ const PowerUp = () => {
                         </div>
                         {error && <p className="text-red-500 mb-4">{error}</p>}
                         {reportUrl && (
-                            <div className="mb-6">
+                            <div className="mb-6 flex justify-center">
                                 <a 
                                     href={reportUrl} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block"
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
                                 >
+                                    <ExternalLinkIcon className="h-5 w-5 mr-2" />
                                     Open Report in New Tab
                                 </a>
                             </div>
@@ -200,8 +203,8 @@ const PowerUp = () => {
                                         <iframe
                                             srcDoc={report}
                                             title="Graphical Report"
-                                            width="800px"
-                                            height="600px"
+                                            width="100%"
+                                            height="500px"
                                             className="border-none"
                                         />
                                     )}

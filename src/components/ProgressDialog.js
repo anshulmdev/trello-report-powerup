@@ -26,7 +26,7 @@ const ProgressDialog = ({ characters }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
         >
             <div className="bg-white p-8 rounded-lg shadow-xl">
                 <h3 className="text-2xl font-bold mb-4">Generating Report</h3>
