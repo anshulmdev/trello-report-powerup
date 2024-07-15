@@ -57,7 +57,14 @@ export const generateReport = async (token, type, data, question) => {
         }
         
         const result = await response.json();
-        return type === 'text' ? result.response[0].text : result.response.fileURL;
+        if (type === 'text') {
+            return result.response[0].text;
+        } else {
+            return {
+                fileURL: result.response.fileURL,
+                html: result.response.html // Assuming the API returns both fileURL and html for graphic reports
+            };
+        }
     } catch (error) {
         console.error('Error generating report:', error);
         throw error;

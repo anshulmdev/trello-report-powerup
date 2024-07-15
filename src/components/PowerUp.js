@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon } from '@heroicons/react/24/solid';
 import ReportTypeSelector from './ReportTypeSelector';
 import TokenInput from './TokenInput';
+import ProgressDialog from './ProgressDialog';
 import { validateToken, generateReport } from '../services/apiLabzService';
 import { getCardData } from '../services/trelloService';
 
@@ -10,8 +13,11 @@ const PowerUp = () => {
     const [credits, setCredits] = useState(0);
     const [reportType, setReportType] = useState('');
     const [report, setReport] = useState('');
+    const [reportUrl, setReportUrl] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showProgress, setShowProgress] = useState(false);
+    const [characters, setCharacters] = useState(0);
 
     useEffect(() => {
         const storedToken = localStorage.getItem('apiLabzToken');
@@ -54,28 +60,74 @@ const PowerUp = () => {
 
     const handleReportTypeSelect = async (type, question) => {
         setLoading(true);
+        setShowProgress(true);
         setReportType(type);
         const t = window.TrelloPowerUp.iframe();
         const cardData = await getCardData(t);
+        setCharacters(JSON.stringify(cardData).length);
         try {
             const generatedReport = await generateReport(token, type, cardData, question);
-            setReport(generatedReport);
+            if (type === 'text') {
+                setReport(generatedReport);
+            } else {
+                setReportUrl(generatedReport.fileURL);
+                setReport(generatedReport.html);
+            }
         } catch (error) {
             setError('Error generating report. Please try again.');
         }
         setLoading(false);
+        setShowProgress(false);
     };
 
     const handleBack = () => {
         setReportType('');
         setReport('');
+        setReportUrl('');
         setError('');
+    };
+
+    const handlePrint = () => {
+        const printContent = `
+            <html>
+                <head>
+                    <title>Print Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        @media print {
+                            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>${report}</body>
+            </html>
+        `;
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        iframe.contentDocument.write(printContent);
+        iframe.contentDocument.close();
+        iframe.contentWindow.print();
+        document.body.removeChild(iframe);
+    };
+
+    const handleSave = () => {
+        const blob = new Blob([report], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'report.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-screen">
+            <div className="flex flex-col justify-center items-center h-screen">
                 <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+                <p className="mt-4 text-lg font-semibold text-gray-700">Loading... Please wait</p>
             </div>
         );
     }
@@ -89,25 +141,67 @@ const PowerUp = () => {
     }
 
     return (
-        <div className="p-8 max-w-4xl mx-auto">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="p-8 max-w-4xl mx-auto"
+        >
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl font-bold">Generated Report</h2>
-                <button 
-                    onClick={handleBack}
-                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                >
-                    Back
-                </button>
+                <div className="flex items-center space-x-4">
+                    <CreditCardIcon className="h-6 w-6 text-green-500" />
+                    <span className="text-lg font-semibold">Credits: {credits}</span>
+                    <button 
+                        onClick={handleBack}
+                        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center"
+                    >
+                        <ChevronLeftIcon className="h-5 w-5 mr-2" />
+                        Back
+                    </button>
+                </div>
             </div>
             {error && <p className="text-red-500 mb-4">{error}</p>}
-            {report && (
-                <div 
-                    className="border border-gray-300 rounded-lg p-4 overflow-auto"
-                    style={{maxHeight: '70vh'}}
-                    dangerouslySetInnerHTML={{ __html: report }}
-                />
+            {reportUrl && (
+                <div className="mb-6">
+                    <a 
+                        href={reportUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block"
+                    >
+                        Open Report in New Tab
+                    </a>
+                </div>
             )}
-        </div>
+            {report && (
+                <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="border border-gray-300 rounded-lg p-4 shadow-lg bg-white"
+                >
+                    <div className="flex justify-end space-x-2 mb-4">
+                        <button onClick={handlePrint} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                            <PrinterIcon className="h-5 w-5 mr-2" />
+                            Print
+                        </button>
+                        <button onClick={handleSave} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                            <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+                            Save
+                        </button>
+                    </div>
+                    <div 
+                        className="overflow-auto"
+                        style={{maxHeight: '60vh'}}
+                        dangerouslySetInnerHTML={{ __html: report }}
+                    />
+                </motion.div>
+            )}
+            {showProgress && (
+                <ProgressDialog characters={characters} />
+            )}
+        </motion.div>
     );
 };
 

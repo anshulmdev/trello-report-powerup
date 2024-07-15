@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { DocumentTextIcon, ChartBarIcon, CreditCardIcon } from '@heroicons/react/24/solid';
 
 const ReportTypeSelector = ({ onSelect, credits }) => {
     const [question, setQuestion] = useState('');
@@ -8,9 +10,17 @@ const ReportTypeSelector = ({ onSelect, credits }) => {
     };
 
     return (
-        <div className="p-8 max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6">Generate a Report</h2>
-            <p className="text-gray-600 mb-6">Available credits: {credits}</p>
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="p-8 max-w-2xl mx-auto bg-white shadow-lg rounded-lg"
+        >
+            <h2 className="text-3xl font-bold mb-6">Generate AI Report</h2>
+            <div className="flex items-center mb-6">
+                <CreditCardIcon className="h-6 w-6 text-green-500 mr-2" />
+                <p className="text-gray-600">Available credits: {credits}</p>
+            </div>
             <div className="mb-6">
                 <label htmlFor="question" className="block text-sm font-medium text-gray-700 mb-2">
                     What would you like to know about your data?
@@ -25,20 +35,26 @@ const ReportTypeSelector = ({ onSelect, credits }) => {
                 ></textarea>
             </div>
             <div className="space-y-4">
-                <button 
+                <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleSubmit('text')} 
-                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded"
+                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded flex items-center justify-center"
                 >
+                    <DocumentTextIcon className="h-6 w-6 mr-2" />
                     Generate Text Report
-                </button>
-                <button 
+                </motion.button>
+                <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleSubmit('graphic')} 
-                    className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-4 rounded"
+                    className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-4 rounded flex items-center justify-center"
                 >
+                    <ChartBarIcon className="h-6 w-6 mr-2" />
                     Generate Graphic Report
-                </button>
+                </motion.button>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

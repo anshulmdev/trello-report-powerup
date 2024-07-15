@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import PowerUp from './components/PowerUp';
+import logo from './logo512.png';
 
 function App() {
   useEffect(() => {
@@ -7,14 +8,15 @@ function App() {
       'board-buttons': function(t, options) {
         return [{
           icon: {
-            dark: 'https://img.icons8.com/ios-filled/50/000000/report-card.png',
-            light: 'https://img.icons8.com/ios/50/000000/report-card.png'
+            dark: logo,
+            light: logo
           },
-          text: 'Generate Report',
+          text: 'Generate AI Report',
           callback: function(t) {
             return t.modal({
               url: './index.html',
-              height: 600,
+              title: 'AI Powered Reports - by API Labz',
+              height: 680,
               fullscreen: false,
             });
           }
