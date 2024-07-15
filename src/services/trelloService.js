@@ -2,12 +2,18 @@ export const getCardData = async (t) => {
     try {
         const cards = await t.cards('all');
         return cards.map(card => ({
-            id: card.id,
             name: card.name,
-            desc: card.desc,
-            labels: card.labels,
+            desc: card.desc.slice(0,1000),
+            pos: card.pos,
+            labels: card.labels.map(label => ({ name: label.name })),
             due: card.due,
-            members: card.members,
+            dateLastActivity: card.dateLastActivity,
+            members: card.members.map(member => ({ fullName: member.fullName})),
+            checklists: card.checklists ? card.checklists.map(checklist => ({
+                name: checklist.name,
+                itemCount: checklist.checkItems ? checklist.checkItems.length : 0,
+                completedItemCount: checklist.checkItems ? checklist.checkItems.filter(item => item.state === 'complete').length : 0
+            })) : []
             // Add more fields as needed, but avoid large data like attachments
         }));
     } catch (error) {
