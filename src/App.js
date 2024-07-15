@@ -12,10 +12,10 @@ function App() {
           },
           text: 'Generate Report',
           callback: function(t) {
-            return t.popup({
-              title: 'Generate Report',
+            return t.modal({
               url: './index.html',
-              height: 300
+              height: 600,
+              fullscreen: false,
             });
           }
         }];

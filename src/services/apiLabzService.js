@@ -39,7 +39,7 @@ export const generateReport = async (token, type, data, question) => {
     
     const postData = type === 'text' 
         ? { prompt: `${formattingPrompt} ${question}` }
-        : { rawData: data, instruction: question };
+        : { rawData: JSON.stringify(data), instruction: question };
 
     try {
         const response = await fetch(url, {
@@ -52,7 +52,8 @@ export const generateReport = async (token, type, data, question) => {
         });
         
         if (!response.ok) {
-            throw new Error(`Error from API: ${await response.text()}`);
+            const errorData = await response.json();
+            throw new Error(`Error from API: ${JSON.stringify(errorData)}`);
         }
         
         const result = await response.json();
