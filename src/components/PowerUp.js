@@ -132,76 +132,78 @@ const PowerUp = () => {
         );
     }
 
-    if (!isTokenValid) {
-        return <TokenInput onSubmit={handleTokenSubmit} error={error} />;
-    }
-
-    if (!reportType) {
-        return <ReportTypeSelector onSelect={handleReportTypeSelect} credits={credits} />;
-    }
-
     return (
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="p-8 max-w-4xl mx-auto"
-        >
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Generated Report</h2>
-                <div className="flex items-center space-x-4">
-                    <CreditCardIcon className="h-6 w-6 text-green-500" />
-                    <span className="text-lg font-semibold">Credits: {credits}</span>
-                    <button 
-                        onClick={handleBack}
-                        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center"
-                    >
-                        <ChevronLeftIcon className="h-5 w-5 mr-2" />
-                        Back
-                    </button>
-                </div>
-            </div>
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            {reportUrl && (
-                <div className="mb-6">
-                    <a 
-                        href={reportUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block"
-                    >
-                        Open Report in New Tab
-                    </a>
-                </div>
-            )}
-            {report && (
+        <div className="container mx-auto px-4 py-8">
+            {!isTokenValid ? (
+                <TokenInput onSubmit={handleTokenSubmit} error={error} />
+            ) : !reportType ? (
+                <ReportTypeSelector onSelect={handleReportTypeSelect} credits={credits} />
+            ) : (
                 <motion.div 
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ duration: 0.5 }}
-                    className="border border-gray-300 rounded-lg p-4 shadow-lg bg-white"
+                    className="bg-white shadow-lg rounded-lg overflow-hidden"
                 >
-                    <div className="flex justify-end space-x-2 mb-4">
-                        <button onClick={handlePrint} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
-                            <PrinterIcon className="h-5 w-5 mr-2" />
-                            Print
-                        </button>
-                        <button onClick={handleSave} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
-                            <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
-                            Save
-                        </button>
+                    <div className="p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-3xl font-bold">Generated Report</h2>
+                            <div className="flex items-center space-x-4">
+                                <CreditCardIcon className="h-6 w-6 text-green-500" />
+                                <span className="text-lg font-semibold">Credits: {credits}</span>
+                                <button 
+                                    onClick={handleBack}
+                                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center"
+                                >
+                                    <ChevronLeftIcon className="h-5 w-5 mr-2" />
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+                        {error && <p className="text-red-500 mb-4">{error}</p>}
+                        {reportUrl && (
+                            <div className="mb-6">
+                                <a 
+                                    href={reportUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block"
+                                >
+                                    Open Report in New Tab
+                                </a>
+                            </div>
+                        )}
+                        {report && (
+                            <motion.div 
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                                className="border border-gray-300 rounded-lg p-4 shadow-lg bg-white"
+                            >
+                                <div className="flex justify-end space-x-2 mb-4">
+                                    <button onClick={handlePrint} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                                        <PrinterIcon className="h-5 w-5 mr-2" />
+                                        Print
+                                    </button>
+                                    <button onClick={handleSave} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center">
+                                        <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+                                        Save
+                                    </button>
+                                </div>
+                                <div 
+                                    className="overflow-auto"
+                                    style={{maxHeight: '60vh'}}
+                                    dangerouslySetInnerHTML={{ __html: report }}
+                                />
+                            </motion.div>
+                        )}
                     </div>
-                    <div 
-                        className="overflow-auto"
-                        style={{maxHeight: '60vh'}}
-                        dangerouslySetInnerHTML={{ __html: report }}
-                    />
                 </motion.div>
             )}
             {showProgress && (
                 <ProgressDialog characters={characters} />
             )}
-        </motion.div>
+        </div>
     );
 };
 

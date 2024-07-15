@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import PowerUp from './components/PowerUp';
-import logo from './logo512.png';
 
 function App() {
   useEffect(() => {
@@ -8,16 +7,16 @@ function App() {
       'board-buttons': function(t, options) {
         return [{
           icon: {
-            dark: logo,
-            light: logo
+            dark: 'https://glistening-choux-190890.netlify.app/logo512.png',
+            light: 'https://glistening-choux-190890.netlify.app/logo512.png'
           },
           text: 'Generate AI Report',
           callback: function(t) {
-            return t.modal({
-              url: './index.html',
+            return t.popup({
               title: 'AI Powered Reports - by API Labz',
-              height: 680,
-              fullscreen: false,
+              url: './index.html',
+              height: 600,
+              args: { rand: Math.random() }, // To force iframe reload
             });
           }
         }];

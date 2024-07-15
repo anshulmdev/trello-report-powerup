@@ -35,11 +35,12 @@ export const generateReport = async (token, type, data, question) => {
     - Final output should completely in html format with Headings, Paragraphs, Bullet Points and Table
     - Final output should be in html only. Do not print extra lines like "Here is a simple summary in HTML format with headings, paragraphs, bullet points, and a table:"
     - Do not print records table. print only summary and analysis
+    - Work like a Project Manager and Scrum Master, You are getting Task data with titles, description ,dates etc - Write a proper summary and evaluation
     `;
     
     const postData = type === 'text' 
         ? { prompt: `${formattingPrompt} ${question}` }
-        : { rawData: JSON.stringify(data), instruction: question };
+        : { rawData: JSON.stringify(data), instruction: `Generate a small HTML report, no need of Lot of charts. Need a short and simple Graphical Report. If data is too much then print only 2 charts. if data is less then 4 charts. Understand Claude 4096 tokens output limit and then print complete html${question}` };
 
     try {
         const response = await fetch(url, {
