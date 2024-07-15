@@ -200,7 +200,7 @@ const PowerUp = () => {
                                         <iframe
                                             srcDoc={report}
                                             title="Graphical Report"
-                                            width="100%"
+                                            width="800px"
                                             height="600px"
                                             className="border-none"
                                         />

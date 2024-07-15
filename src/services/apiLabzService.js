@@ -40,7 +40,7 @@ export const generateReport = async (token, type, data, question) => {
     
     const postData = type === 'text' 
         ? { prompt: `${formattingPrompt} ${question}` }
-        : { rawData: JSON.stringify(data), instruction: `Generate a small HTML report, no need of Lot of charts. Need a short and simple Graphical Report. If data is too much then print only 2 charts. if data is less then 4 charts. Understand Claude 4096 tokens output limit and then print complete html${question}` };
+        : { rawData: JSON.stringify(data), instruction: `${question} <FinalOutput>Generate a small HTML report with only two charts. And below it nice one table of statiscs with proper: shadow, border, margin, colors etc</FinalOutput>` };
 
     try {
         const response = await fetch(url, {
