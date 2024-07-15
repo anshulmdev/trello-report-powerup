@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon, ExternalLinkIcon } from '@heroicons/react/24/solid';
+import { ChevronLeftIcon, PrinterIcon, DocumentArrowDownIcon, CreditCardIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
 import ReportTypeSelector from './ReportTypeSelector';
 import TokenInput from './TokenInput';
 import ProgressDialog from './ProgressDialog';
@@ -171,7 +171,7 @@ const PowerUp = () => {
                                     rel="noopener noreferrer"
                                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
                                 >
-                                    <ExternalLinkIcon className="h-5 w-5 mr-2" />
+                                    <ArrowTopRightOnSquareIcon className="h-5 w-5 mr-2" />
                                     Open Report in New Tab
                                 </a>
                             </div>
