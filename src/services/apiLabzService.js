@@ -60,7 +60,7 @@ export const createUser = async (userEmail, userName) => {
 export const generateReport = async (token, type, data, question) => {
     const url = type === 'text' ? `${API_URL}/module/5001` : `${API_URL}/module/1025`;
     const formattingPrompt = `
-    <StrictInstructions>Provide Statistics on attatched Data Only, Do not hallucinate or create false statistics. Statistics should be strictly on attached data only.</StrictInstructions>
+    <StrictInstructions>Provide Statistics on attatched Data Only, Do not hallucinate or create false statistics.</StrictInstructions>
     <Instructions>
     - Think Very carefully, Take as long as you need.
     - Work as a Professional Data Analyst which can summarize data in well formatted html
@@ -71,7 +71,16 @@ export const generateReport = async (token, type, data, question) => {
     
     const postData = type === 'text' 
         ? { prompt: `${formattingPrompt} ${JSON.stringify(data)}` }
-        : { rawData: JSON.stringify(data), instruction: `<Instructions>${question}</Instructions> <StrictInstructions>Provide Statistics on attatched Data Only, Do not hallucinate or create false statistics. Statistics should be strictly on attached data only.</StrictInstructions><FinalOutput>Generate a small HTML report with only two charts in same vertical line. And below it nice one table of statistics. Apply proper: shadow, border, margin, colors etc</FinalOutput>` };
+        : { 
+            rawData: JSON.stringify(data), 
+            instruction: `
+            <Instructions>${question}</Instructions> 
+            <StrictInstructions>Provide Statistics on attatched Data Only, Do not hallucinate or create false statistics</StrictInstructions>
+            <FinalOutput>
+            - Generate a small HTML report with only two charts in same vertical line. 
+            - And below it nice one table of statistics. Apply proper: shadow, border, margin, colors etc
+            - Do consider 4000 Max token output limit and try to print complete html within that output limit.
+            </FinalOutput>` };
 
     try {
         const controller = new AbortController();
