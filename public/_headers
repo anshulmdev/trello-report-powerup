@@ -1,0 +1,12 @@
+/*
+  # Strict Transport Security
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+  # X-Content-Type-Options
+  X-Content-Type-Options: nosniff
+
+  # Referrer Policy
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # X-XSS-Protection (for older browsers that don't support CSP)
+  X-XSS-Protection: 1; mode=block
