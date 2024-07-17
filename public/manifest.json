@@ -1,8 +1,8 @@
 {
-  "name": "AI Report Generator",
-  "details": "A short description of your Power-Up",
+  "name": "AI Powered Reports",
+  "details": "Generate AI-powered reports from your Trello boards",
   "icon": {
-    "url": "https://your-icon-url.png"
+    "url": "https://glistening-choux-190890.netlify.app/logo512.png"
   },
   "author": "Your Name",
   "capabilities": [
