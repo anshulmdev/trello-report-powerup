@@ -28,13 +28,38 @@ const PowerUp = () => {
                 setToken(storedToken);
                 await checkToken(storedToken);
             } else {
-                setIsTokenValid(false);
-                setLoading(false);
+                await createTrelloUser();
             }
         };
 
         initializeApp();
     }, []);
+
+    const createTrelloUser = async () => {
+        try {
+            const t = window.TrelloPowerUp.iframe();
+            const member = await t.member('id', 'fullName', 'username', 'email');
+            
+            if (!member.email) {
+                throw new Error('Unable to retrieve email from Trello. Please ensure you have granted the necessary permissions.');
+            }
+
+            const result = await createUser(member.email, member.fullName);
+            if (result.token) {
+                setToken(result.token);
+                setIsTokenValid(true);
+                setCredits(result.credits);
+                localStorage.setItem('apiLabzToken', result.token);
+            } else if (result.error) {
+                setError(result.error);
+            }
+        } catch (error) {
+            console.error('Error creating Trello user:', error);
+            setError(error.message || 'Error creating user. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const checkToken = async (tokenToCheck) => {
         const result = await validateToken(tokenToCheck);
@@ -45,6 +70,9 @@ const PowerUp = () => {
             setIsTokenValid(false);
             setToken('');
             localStorage.removeItem('apiLabzToken');
+            if (result.error) {
+                setError(result.error);
+            }
         }
         setLoading(false);
     };
