@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Trello Power-Up Test</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <script>
+    var t = window.TrelloPowerUp.iframe();
+    
+    window.addEventListener('load', function() {
+      document.getElementById('content').textContent = 'Power-Up loaded successfully!';
+      t.render(function(){
+        t.sizeTo('#content').done();
+      });
+    });
+  </script>
+</head>
+<body>
+  <div id="content">Loading...</div>
+</body>
+</html>
