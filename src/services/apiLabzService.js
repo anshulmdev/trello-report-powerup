@@ -1,5 +1,31 @@
 const API_URL = 'https://hub.apilabz.com';
 
+const handleApiError = (error) => {
+    if (error.name === 'AbortError') {
+        return { error: 'Request timed out. Please try again.' };
+    }
+    if (error.response) {
+        switch (error.response.status) {
+            case 401:
+                return { error: 'Unauthorized. Please check your API token.' };
+            case 403:
+                return { error: 'Access forbidden. Please check your permissions.' };
+            case 404:
+                return { error: 'Resource not found. Please try again later.' };
+            case 429:
+                return { error: 'Too many requests. Please try again later.' };
+            case 500:
+            case 502:
+            case 503:
+            case 504:
+                return { error: 'Server error. Please try again later.' };
+            default:
+                return { error: 'An unexpected error occurred. Please try again.' };
+        }
+    }
+    return { error: 'Network error. Please check your internet connection.' };
+};
+
 export const validateToken = async (token) => {
     try {
         const response = await fetch(`${API_URL}/user/token`, {
@@ -13,17 +39,10 @@ export const validateToken = async (token) => {
             const data = await response.json();
             return { isValid: true, credits: data.credits };
         } else {
-            const errorData = await response.json();
-            if (errorData.error === 'Invalid token') {
-                console.log("Token not valid");
-                return { isValid: false, shouldOpenDialog: true };
-            } else {
-                throw new Error('Error validating token');
-            }
+            return handleApiError({ response });
         }
     } catch (error) {
-        console.error('Error validating token:', error);
-        return { isValid: false, errorMessage: 'Error validating token. Please try again.' };
+        return handleApiError(error);
     }
 };
 
@@ -44,23 +63,17 @@ export const createUser = async (userEmail, userName) => {
             const data = await response.json();
             return { token: data.token, credits: data.credits };
         } else {
-            const errorData = await response.json();
-            if (errorData.error === 'Internal Server Error') {
-                return { shouldOpenDialog: true };
-            } else {
-                throw new Error('Error creating user');
-            }
+            return handleApiError({ response });
         }
     } catch (error) {
-        console.error('Error creating user:', error);
-        throw error;
+        return handleApiError(error);
     }
 };
 
 export const generateReport = async (token, type, data, question) => {
     const url = type === 'text' ? `${API_URL}/module/5001` : `${API_URL}/module/1025`;
     const formattingPrompt = `
-    <StrictInstructions>Provide Statistics on attatched Data Only, Do not hallucinate or create false statistics.</StrictInstructions>
+    <StrictInstructions>Provide Statistics on attached Data Only, Do not hallucinate or create false statistics.</StrictInstructions>
     <Instructions>
     - Think Very carefully, Take as long as you need.
     - Work as a Professional Data Analyst which can summarize data in well formatted html
@@ -75,7 +88,7 @@ export const generateReport = async (token, type, data, question) => {
             rawData: JSON.stringify(data), 
             instruction: `
             <Instructions>${question}</Instructions> 
-            <StrictInstructions>Provide Statistics on attatched Data Only, Do not hallucinate or create false statistics</StrictInstructions>
+            <StrictInstructions>Provide Statistics on attached Data Only, Do not hallucinate or create false statistics</StrictInstructions>
             <FinalOutput>
             - Generate a small HTML report with only two charts in same vertical line. 
             - And below it nice one table of statistics. Apply proper: shadow, border, margin, colors etc
@@ -98,18 +111,13 @@ export const generateReport = async (token, type, data, question) => {
         
         clearTimeout(timeoutId);
         
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Error from API: ${JSON.stringify(errorData)}`);
+        if (response.ok) {
+            const result = await response.json();
+            return result.response;
+        } else {
+            return handleApiError({ response });
         }
-        
-        const result = await response.json();
-        return result.response;
     } catch (error) {
-        if (error.name === 'AbortError') {
-            throw new Error('Request timeout from server end');
-        }
-        console.error('Error generating report:', error);
-        throw error;
+        return handleApiError(error);
     }
 };
