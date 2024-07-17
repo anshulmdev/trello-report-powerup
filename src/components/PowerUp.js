@@ -28,30 +28,13 @@ const PowerUp = () => {
                 setToken(storedToken);
                 await checkToken(storedToken);
             } else {
-                await createTrellUser();
+                setIsTokenValid(false);
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         initializeApp();
     }, []);
-
-    const createTrellUser = async () => {
-        try {
-            const result = await createUser('example@email.com', 'Example User');
-            if (result.token) {
-                setToken(result.token);
-                setIsTokenValid(true);
-                setCredits(result.credits);
-                localStorage.setItem('apiLabzToken', result.token);
-            } else {
-                setError('Error creating user. Please enter your token manually.');
-            }
-        } catch (error) {
-            console.error('Error creating Trello user:', error);
-            setError('Error creating user. Please enter your token manually.');
-        }
-    };
 
     const checkToken = async (tokenToCheck) => {
         const result = await validateToken(tokenToCheck);
@@ -60,10 +43,10 @@ const PowerUp = () => {
             setCredits(result.credits);
         } else {
             setIsTokenValid(false);
-            if (result.errorMessage) {
-                setError(result.errorMessage);
-            }
+            setToken('');
+            localStorage.removeItem('apiLabzToken');
         }
+        setLoading(false);
     };
 
     const handleTokenSubmit = async (newToken) => {
@@ -75,7 +58,7 @@ const PowerUp = () => {
             setCredits(result.credits);
             localStorage.setItem('apiLabzToken', newToken);
         } else {
-            setError(result.errorMessage || 'Invalid token. Please try again.');
+            setError(result.error || 'Invalid token. Please try again.');
         }
         setLoading(false);
     };
@@ -89,6 +72,9 @@ const PowerUp = () => {
             const cardData = await getCardData(t);
             setCharacters(JSON.stringify(cardData).length);
             const generatedReport = await generateReport(token, type, cardData, question);
+            if (generatedReport.error) {
+                throw new Error(generatedReport.error);
+            }
             const latestTokenInfo = await validateToken(token);
             
             if (latestTokenInfo.isValid) {
@@ -97,7 +83,8 @@ const PowerUp = () => {
                     toast.info(`${creditsUsed} credits used`);
                 }
                 setCredits(latestTokenInfo.credits);
-                localStorage.setItem('apiLabzToken', token);
+            } else {
+                throw new Error('Token became invalid during report generation');
             }
             
             if (type === 'text') {
@@ -108,13 +95,7 @@ const PowerUp = () => {
                 setReport('');
             }
         } catch (error) {
-            if (error.message === 'Request timeout from server end') {
-                setError('Request timeout from server end. Please try again later.');
-            } else if (error.message.includes('Insufficient credits')) {
-                setError('Insufficient credits. Please add more credits to continue.');
-            } else {
-                setError('Error generating report. Please try again.');
-            }
+            setError(error.message);
         }
         setLoading(false);
         setShowProgress(false);
