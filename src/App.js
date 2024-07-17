@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import PowerUp from './components/PowerUp';
 
 function App() {
   useEffect(() => {
@@ -6,16 +7,16 @@ function App() {
       'board-buttons': function(t, options) {
         return [{
           icon: {
-            dark: 'https://glistening-choux-190890.netlify.app/logo192.png',
-            light: 'https://glistening-choux-190890.netlify.app/logo192.png'
+            dark: 'https://glistening-choux-190890.netlify.app/logo512.png',
+            light: 'https://glistening-choux-190890.netlify.app/logo512.png'
           },
-          text: 'AI Report',
+          text: 'Generate AI Report',
           callback: function(t) {
             return t.modal({
-              url: 'https://glistening-choux-190890.netlify.app/report',
+              url: './index.html',
               height: 600,
               width: 800,
-              title: 'AI Powered Report'
+              title: 'AI Powered Reports - by API Labz'
             });
           }
         }];
@@ -25,8 +26,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>AI Powered Reports</h1>
-      <p>This is the main page of the Power-Up.</p>
+      <PowerUp />
     </div>
   );
 }

@@ -1,31 +1,5 @@
 const API_URL = 'https://hub.apilabz.com';
 
-const handleApiError = (error) => {
-    if (error.name === 'AbortError') {
-        return { error: 'Request timed out. Please try again.' };
-    }
-    if (error.response) {
-        switch (error.response.status) {
-            case 401:
-                return { error: 'Unauthorized. Please check your API token.' };
-            case 403:
-                return { error: 'Access forbidden. Please check your permissions.' };
-            case 404:
-                return { error: 'Resource not found. Please try again later.' };
-            case 429:
-                return { error: 'Too many requests. Please try again later.' };
-            case 500:
-            case 502:
-            case 503:
-            case 504:
-                return { error: 'Server error. Please try again later.' };
-            default:
-                return { error: 'An unexpected error occurred. Please try again.' };
-        }
-    }
-    return { error: 'Network error. Please check your internet connection.' };
-};
-
 export const validateToken = async (token) => {
     try {
         const response = await fetch(`${API_URL}/user/token`, {
@@ -39,34 +13,11 @@ export const validateToken = async (token) => {
             const data = await response.json();
             return { isValid: true, credits: data.credits };
         } else {
-            return handleApiError({ response });
+            const errorData = await response.json();
+            return { isValid: false, errorMessage: errorData.error || 'Unable to validate token' };
         }
     } catch (error) {
-        return handleApiError(error);
-    }
-};
-
-export const createUser = async (userEmail, userName) => {
-    try {
-        const response = await fetch(`${API_URL}/user/create`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: userEmail,
-                name: userName,
-            }),
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            return { token: data.token, credits: data.credits };
-        } else {
-            return handleApiError({ response });
-        }
-    } catch (error) {
-        return handleApiError(error);
+        return { isValid: false, errorMessage: 'Network error. Please check your connection and try again.' };
     }
 };
 
@@ -111,13 +62,17 @@ export const generateReport = async (token, type, data, question) => {
         
         clearTimeout(timeoutId);
         
-        if (response.ok) {
-            const result = await response.json();
-            return result.response;
-        } else {
-            return handleApiError({ response });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'An error occurred while generating the report');
         }
+        
+        const result = await response.json();
+        return result.response;
     } catch (error) {
-        return handleApiError(error);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timed out. Please try again later.');
+        }
+        throw error;
     }
 };

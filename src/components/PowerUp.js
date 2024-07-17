@@ -6,7 +6,7 @@ import ProgressDialog from './ProgressDialog';
 import ErrorDialog from './ErrorDialog';
 import MainContent from './MainContent';
 import InitialLoading from './InitialLoading';
-import { validateToken, generateReport, createUser } from '../services/apiLabzService';
+import { validateToken, generateReport } from '../services/apiLabzService';
 import { getCardData } from '../services/trelloService';
 
 const PowerUp = () => {
@@ -27,39 +27,12 @@ const PowerUp = () => {
             if (storedToken) {
                 setToken(storedToken);
                 await checkToken(storedToken);
-            } else {
-                await createTrelloUser();
             }
+            setLoading(false);
         };
 
         initializeApp();
     }, []);
-
-    const createTrelloUser = async () => {
-        try {
-            const t = window.TrelloPowerUp.iframe();
-            const member = await t.member('id', 'fullName', 'username', 'email');
-            
-            if (!member.email) {
-                throw new Error('Unable to retrieve email from Trello. Please ensure you have granted the necessary permissions.');
-            }
-
-            const result = await createUser(member.email, member.fullName);
-            if (result.token) {
-                setToken(result.token);
-                setIsTokenValid(true);
-                setCredits(result.credits);
-                localStorage.setItem('apiLabzToken', result.token);
-            } else if (result.error) {
-                setError(result.error);
-            }
-        } catch (error) {
-            console.error('Error creating Trello user:', error);
-            setError(error.message || 'Error creating user. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const checkToken = async (tokenToCheck) => {
         const result = await validateToken(tokenToCheck);
@@ -68,13 +41,8 @@ const PowerUp = () => {
             setCredits(result.credits);
         } else {
             setIsTokenValid(false);
-            setToken('');
             localStorage.removeItem('apiLabzToken');
-            if (result.error) {
-                setError(result.error);
-            }
         }
-        setLoading(false);
     };
 
     const handleTokenSubmit = async (newToken) => {
@@ -86,7 +54,7 @@ const PowerUp = () => {
             setCredits(result.credits);
             localStorage.setItem('apiLabzToken', newToken);
         } else {
-            setError(result.error || 'Invalid token. Please try again.');
+            toast.error(result.errorMessage || 'Invalid token. Please try again.');
         }
         setLoading(false);
     };
@@ -100,9 +68,6 @@ const PowerUp = () => {
             const cardData = await getCardData(t);
             setCharacters(JSON.stringify(cardData).length);
             const generatedReport = await generateReport(token, type, cardData, question);
-            if (generatedReport.error) {
-                throw new Error(generatedReport.error);
-            }
             const latestTokenInfo = await validateToken(token);
             
             if (latestTokenInfo.isValid) {
@@ -123,7 +88,7 @@ const PowerUp = () => {
                 setReport('');
             }
         } catch (error) {
-            setError(error.message);
+            toast.error(error.message || 'An error occurred while generating the report. Please try again.');
         }
         setLoading(false);
         setShowProgress(false);
@@ -160,7 +125,7 @@ const PowerUp = () => {
         <div className="container mx-auto px-4 py-8 max-w-3xl">
             <ToastContainer />
             {!isTokenValid ? (
-                <TokenInput onSubmit={handleTokenSubmit} error={error} />
+                <TokenInput onSubmit={handleTokenSubmit} />
             ) : (
                 <MainContent 
                     reportType={reportType}
